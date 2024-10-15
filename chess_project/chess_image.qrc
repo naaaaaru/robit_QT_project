@@ -1,21 +1,20 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/blackbishop.jpg</file>
-        <file>images/blackcastle.jpg</file>
-        <file>images/blackking.jpg</file>
-        <file>images/blackknight.jpg</file>
-        <file>images/blackpawn.jpg</file>
-        <file>images/blackqueen.jpg</file>
+        <file>images/black_bishop.png</file>
+        <file>images/black_rook.png</file>
+        <file>images/black_king.png</file>
+        <file>images/black_knight.png</file>
+        <file>images/black_pawn.png</file>
+        <file>images/black_queen.png</file>
         <file>images/blackturn.jpg</file>
-        <file>images/chess.jpg</file>
         <file>images/chessicon.jpg</file>
         <file>images/timer.jpg</file>
-        <file>images/whitebishop.jpg</file>
-        <file>images/whitecastle.jpg</file>
-        <file>images/whiteking.jpg</file>
-        <file>images/whiteknight.jpg</file>
-        <file>images/whitepawn.jpg</file>
-        <file>images/whitequeen.jpg</file>
+        <file>images/white_bishop.png</file>
+        <file>images/white_rook.png</file>
+        <file>images/white_king.png</file>
+        <file>images/white_knight.png</file>
+        <file>images/white_pawn.png</file>
+        <file>images/white_queen.png</file>
         <file>images/whiteturn.jpg</file>
     </qresource>
 </RCC>

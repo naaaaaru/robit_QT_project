@@ -112,40 +112,40 @@ void chess::on_black_done_clicked()
 void chess::placePieces()
 {
     // 흰색 말 배치
-    addPiece(":/images/whitepawn.jpg", 6, 0);
-    addPiece(":/images/whitepawn.jpg", 6, 1);
-    addPiece(":/images/whitepawn.jpg", 6, 2);
-    addPiece(":/images/whitepawn.jpg", 6, 3);
-    addPiece(":/images/whitepawn.jpg", 6, 4);
-    addPiece(":/images/whitepawn.jpg", 6, 5);
-    addPiece(":/images/whitepawn.jpg", 6, 6);
-    addPiece(":/images/whitepawn.jpg", 6, 7);
+    addPiece(":/images/white_pawn.png", 6, 0);
+    addPiece(":/images/white_pawn.png", 6, 1);
+    addPiece(":/images/white_pawn.png", 6, 2);
+    addPiece(":/images/white_pawn.png", 6, 3);
+    addPiece(":/images/white_pawn.png", 6, 4);
+    addPiece(":/images/white_pawn.png", 6, 5);
+    addPiece(":/images/white_pawn.png", 6, 6);
+    addPiece(":/images/white_pawn.png", 6, 7);
 
-    addPiece(":/images/whitecastle.jpg", 7, 0);
-    addPiece(":/images/whiteknight.jpg", 7, 1);
-    addPiece(":/images/whitebishop.jpg", 7, 2);
-    addPiece(":/images/whitequeen.jpg", 7, 3);
-    addPiece(":/images/whiteking.jpg", 7, 4);
-    addPiece(":/images/whitebishop.jpg", 7, 5);
-    addPiece(":/images/whiteknight.jpg", 7, 6);
-    addPiece(":/images/whitecastle.jpg", 7, 7);
+    addPiece(":/images/white_rook.png", 7, 0);
+    addPiece(":/images/white_knight.png", 7, 1);
+    addPiece(":/images/white_bishop.png", 7, 2);
+    addPiece(":/images/white_queen.png", 7, 3);
+    addPiece(":/images/white_king.png", 7, 4);
+    addPiece(":/images/white_bishop.png", 7, 5);
+    addPiece(":/images/white_knight.png", 7, 6);
+    addPiece(":/images/white_rook.png", 7, 7);
 
     // 검은색 말 배치
-    addPiece(":/images/blackpawn.jpg", 1, 0);
-    addPiece(":/images/blackpawn.jpg", 1, 1);
-    addPiece(":/images/blackpawn.jpg", 1, 2);
-    addPiece(":/images/blackpawn.jpg", 1, 3);
-    addPiece(":/images/blackpawn.jpg", 1, 4);
-    addPiece(":/images/blackpawn.jpg", 1, 5);
-    addPiece(":/images/blackpawn.jpg", 1, 6);
-    addPiece(":/images/blackpawn.jpg", 1, 7);
+    addPiece(":/images/black_pawn.png", 1, 0);
+    addPiece(":/images/black_pawn.png", 1, 1);
+    addPiece(":/images/black_pawn.png", 1, 2);
+    addPiece(":/images/black_pawn.png", 1, 3);
+    addPiece(":/images/black_pawn.png", 1, 4);
+    addPiece(":/images/black_pawn.png", 1, 5);
+    addPiece(":/images/black_pawn.png", 1, 6);
+    addPiece(":/images/black_pawn.png", 1, 7);
 
-    addPiece(":/images/blackcastle.jpg", 0, 0);
-    addPiece(":/images/blackknight.jpg", 0, 1);
-    addPiece(":/images/blackbishop.jpg", 0, 2);
-    addPiece(":/images/blackqueen.jpg", 0, 3);
-    addPiece(":/images/blackking.jpg", 0, 4);
-    addPiece(":/images/blackbishop.jpg", 0, 5);
-    addPiece(":/images/blackknight.jpg", 0, 6);
-    addPiece(":/images/blackcastle.jpg", 0, 7);
+    addPiece(":/images/black_rook.png", 0, 0);
+    addPiece(":/images/black_knight.png", 0, 1);
+    addPiece(":/images/black_bishop.png", 0, 2);
+    addPiece(":/images/black_queen.png", 0, 3);
+    addPiece(":/images/black_king.png", 0, 4);
+    addPiece(":/images/black_bishop.png", 0, 5);
+    addPiece(":/images/black_knight.png", 0, 6);
+    addPiece(":/images/black_rook.png", 0, 7);
 }
