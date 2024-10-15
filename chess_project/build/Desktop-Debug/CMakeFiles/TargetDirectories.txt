@@ -1,0 +1,8 @@
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/chess_project.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/edit_cache.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/rebuild_cache.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/list_install_components.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/install.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/install/local.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/install/strip.dir
+/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/chess_project_autogen.dir

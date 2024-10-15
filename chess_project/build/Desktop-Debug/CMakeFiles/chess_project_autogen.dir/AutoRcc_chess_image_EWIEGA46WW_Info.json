@@ -1,0 +1,38 @@
+{
+	"BUILD_DIR" : "/home/j/qt creator/chess_project/build/Desktop-Debug/chess_project_autogen",
+	"CMAKE_BINARY_DIR" : "/home/j/qt creator/chess_project/build/Desktop-Debug",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/j/qt creator/chess_project/build/Desktop-Debug",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/j/qt creator/chess_project",
+	"CMAKE_SOURCE_DIR" : "/home/j/qt creator/chess_project",
+	"INCLUDE_DIR" : "/home/j/qt creator/chess_project/build/Desktop-Debug/chess_project_autogen/include",
+	"INPUTS" : 
+	[
+		"/home/j/qt creator/chess_project/images/blackking.jpg",
+		"/home/j/qt creator/chess_project/images/blackqueen.jpg",
+		"/home/j/qt creator/chess_project/images/whiteturn.jpg",
+		"/home/j/qt creator/chess_project/images/whitequeen.jpg",
+		"/home/j/qt creator/chess_project/images/timer.jpg",
+		"/home/j/qt creator/chess_project/images/whitepawn.jpg",
+		"/home/j/qt creator/chess_project/images/blackcastle.jpg",
+		"/home/j/qt creator/chess_project/images/blackturn.jpg",
+		"/home/j/qt creator/chess_project/images/blackbishop.jpg",
+		"/home/j/qt creator/chess_project/images/whitecastle.jpg",
+		"/home/j/qt creator/chess_project/images/chess.jpg",
+		"/home/j/qt creator/chess_project/images/blackpawn.jpg",
+		"/home/j/qt creator/chess_project/images/whitebishop.jpg",
+		"/home/j/qt creator/chess_project/images/chessicon.jpg",
+		"/home/j/qt creator/chess_project/images/whiteking.jpg",
+		"/home/j/qt creator/chess_project/images/blackknight.jpg",
+		"/home/j/qt creator/chess_project/images/whiteknight.jpg"
+	],
+	"LOCK_FILE" : "/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/chess_project_autogen.dir/AutoRcc_chess_image_EWIEGA46WW_Lock.lock",
+	"MULTI_CONFIG" : false,
+	"OPTIONS" : [ "-name", "chess_image" ],
+	"OUTPUT_CHECKSUM" : "EWIEGA46WW",
+	"OUTPUT_NAME" : "qrc_chess_image.cpp",
+	"RCC_EXECUTABLE" : "/usr/lib/qt5/bin/rcc",
+	"RCC_LIST_OPTIONS" : [ "--list" ],
+	"SETTINGS_FILE" : "/home/j/qt creator/chess_project/build/Desktop-Debug/CMakeFiles/chess_project_autogen.dir/AutoRcc_chess_image_EWIEGA46WW_Used.txt",
+	"SOURCE" : "/home/j/qt creator/chess_project/chess_image.qrc",
+	"VERBOSITY" : 0
+}
