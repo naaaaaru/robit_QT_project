@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1093</width>
-    <height>622</height>
+    <width>1259</width>
+    <height>719</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,16 +19,16 @@
      <rect>
       <x>20</x>
       <y>10</y>
-      <width>651</width>
-      <height>551</height>
+      <width>650</width>
+      <height>650</height>
      </rect>
     </property>
    </widget>
    <widget class="QLCDNumber" name="white_timer">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>20</y>
+      <x>820</x>
+      <y>30</y>
       <width>181</width>
       <height>81</height>
      </rect>
@@ -37,8 +37,8 @@
    <widget class="QLCDNumber" name="black_timer">
     <property name="geometry">
      <rect>
-      <x>860</x>
-      <y>470</y>
+      <x>830</x>
+      <y>560</y>
       <width>181</width>
       <height>81</height>
      </rect>
@@ -47,8 +47,8 @@
    <widget class="QPushButton" name="white_done">
     <property name="geometry">
      <rect>
-      <x>720</x>
-      <y>20</y>
+      <x>690</x>
+      <y>30</y>
       <width>101</width>
       <height>81</height>
      </rect>
@@ -60,8 +60,8 @@
    <widget class="QPushButton" name="black_done">
     <property name="geometry">
      <rect>
-      <x>720</x>
-      <y>470</y>
+      <x>700</x>
+      <y>560</y>
       <width>101</width>
       <height>81</height>
      </rect>
@@ -76,7 +76,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1093</width>
+     <width>1259</width>
      <height>22</height>
     </rect>
    </property>
