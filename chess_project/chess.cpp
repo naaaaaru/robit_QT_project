@@ -26,31 +26,6 @@ chess::~chess()
     delete ui;
 }
 
-// 마우스 클릭 이벤트 처리: 말을 선택합니다.
-void chess::mousePressEvent(QMouseEvent *event)
-{
-    if (pieceMovedInTurn) return;  // 이미 기물을 움직였다면 더 이상 이동 불가
-
-    QPointF clickPos = ui->graphicsView->mapToScene(event->pos());
-    QGraphicsItem *item = scene->itemAt(clickPos, QTransform());
-
-    if (item && event->button() == Qt::LeftButton) {
-        QGraphicsPixmapItem *piece = dynamic_cast<QGraphicsPixmapItem *>(item);
-        if (piece && isValidMove(piece)) {  // 현재 턴에 맞는 기물인지 확인
-            selectedPiece = piece;
-            originalPos = selectedPiece->pos();  // 원래 위치 저장
-            pieceOffset = clickPos - selectedPiece->pos();  // 클릭 지점과 말의 좌표 차이
-
-            // 선택된 기물의 색상 저장
-            QString piecePath = selectedPiece->data(0).toString();
-            isSelectedWhite = piecePath.contains("white");
-
-            isDragging = true;
-        }
-    }
-}
-
-
 // 마우스 이동 이벤트 처리: 선택된 말을 드래그합니다.
 void chess::mouseMoveEvent(QMouseEvent *event)
 {
@@ -60,49 +35,77 @@ void chess::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-// 마우스 해제 이벤트 처리: 드래그를 멈추고 말 위치를 확정합니다.
+// mousePressEvent 함수 수정
+void chess::mousePressEvent(QMouseEvent *event)
+{
+    if (pieceMovedInTurn) return;  // 이미 기물을 움직였다면 더 이상 이동 불가
+
+    QPointF clickPos = ui->graphicsView->mapToScene(event->pos());
+    QGraphicsItem *item = scene->itemAt(clickPos, QTransform());
+
+    if (item && event->button() == Qt::LeftButton) {
+        QGraphicsPixmapItem *piece = dynamic_cast<QGraphicsPixmapItem *>(item);
+        if (piece && isValidMove(piece)) {
+            selectedPiece = piece;
+            originalPos = selectedPiece->pos();
+            pieceOffset = clickPos - selectedPiece->pos();
+
+            QString piecePath = selectedPiece->data(0).toString();
+            isSelectedWhite = piecePath.contains("white");
+
+            isDragging = true;
+        }
+    }
+}
+
+// mouseReleaseEvent 함수 수정
 void chess::mouseReleaseEvent(QMouseEvent *event)
 {
     if (isDragging && selectedPiece) {
         QPointF releasePos = ui->graphicsView->mapToScene(event->pos());
 
-        // 체스판 범위 확인
         if (releasePos.x() < 0 || releasePos.x() >= 640 ||
             releasePos.y() < 0 || releasePos.y() >= 640) {
-            selectedPiece->setPos(originalPos);  // 범위 벗어나면 원래 위치로 복귀
+            selectedPiece->setPos(originalPos);
         } else {
             int tileSize = 80;
-
-            // 놓은 칸 계산
             int col = static_cast<int>(releasePos.x()) / tileSize;
             int row = static_cast<int>(releasePos.y()) / tileSize;
-
-            // 해당 칸의 중앙 좌표 계산
             qreal centerX = col * tileSize + tileSize / 2;
             qreal centerY = row * tileSize + tileSize / 2;
 
-            // 중앙에 있는 기물 탐색
             QGraphicsItem* existingItem = scene->itemAt(QPointF(centerX, centerY), QTransform());
             QGraphicsPixmapItem* capturedPiece = dynamic_cast<QGraphicsPixmapItem*>(existingItem);
 
-            // 상대방 기물만 제거
+            bool moveAllowed = true;
+
             if (capturedPiece && capturedPiece != selectedPiece) {
                 QString capturedPath = capturedPiece->data(0).toString();
                 bool isCapturedWhite = capturedPath.contains("white");
 
-                // 현재 턴에 맞는 상대방 기물일 때만 제거
-                if ((isWhiteTurn && !isCapturedWhite) || (!isWhiteTurn && isCapturedWhite)) {
+                if (isSelectedWhite == isCapturedWhite) {
+                    moveAllowed = false;  // 같은 색상의 기물은 잡을 수 없음
+                } else {
                     qDebug() << "Captured piece at:" << capturedPiece->pos();
-                    scene->removeItem(capturedPiece);  // 기물 삭제
-                    delete capturedPiece;  // 메모리 해제
+                    scene->removeItem(capturedPiece);
+                    delete capturedPiece;
                 }
             }
 
-            // 선택된 기물을 새로운 칸의 중앙에 배치
-            selectedPiece->setPos(centerX - selectedPiece->boundingRect().width() / 2,
-                                  centerY - selectedPiece->boundingRect().height() / 2);
+            if (moveAllowed) {
+                selectedPiece->setPos(centerX - selectedPiece->boundingRect().width() / 2,
+                                      centerY - selectedPiece->boundingRect().height() / 2);
 
-            pieceMovedInTurn = true;  // 기물이 움직였음을 표시
+                QString piecePath = selectedPiece->data(0).toString();
+                QString pieceColor = isSelectedWhite ? "White" : "Black";
+                QString pieceName = piecePath.split("/").last().split("_").last().split(".").first();
+                qDebug() << pieceColor << pieceName << "moved to:" << "(" << col << "," << row << ")";
+
+                pieceMovedInTurn = true;
+                // 턴 변경은 여기서 하지 않고, 'done' 버튼을 눌렀을 때 수행합니다.
+            } else {
+                selectedPiece->setPos(originalPos);
+            }
         }
 
         isDragging = false;
@@ -110,22 +113,17 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-
-
-
+// isValidMove 함수 수정
 bool chess::isValidMove(QGraphicsPixmapItem* piece)
 {
-    // QGraphicsPixmapItem에서 이미지 경로 가져오기
     QString piecePath = piece->data(0).toString();
     if (piecePath.isEmpty()) return false;
 
-    // 이미지 경로에서 기물의 색상 확인
     bool isWhitePiece = piecePath.contains("white");
 
     // 현재 턴에 맞는 기물인지 확인
-    return (isWhiteTurn && isWhitePiece) || (!isWhiteTurn && !isWhitePiece);
+    return (isWhiteTurn == isWhitePiece);
 }
-
 // 체스판 그리기 (8x8 칸)
 void chess::drawChessBoard()
 {
@@ -271,4 +269,3 @@ void chess::on_white_giveup_clicked()
 {
 
 }
-
