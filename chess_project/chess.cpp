@@ -8,18 +8,15 @@ chess::chess(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // QGraphicsScene 초기화 및 설정
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
 
-    drawChessBoard();   // 체스판 그리기
-    placePieces();      // 체스말 배치
+    drawChessBoard();
+    placePieces();
 
-    // 초기 시간 표시 (5:00.00)
     updateLCD(whiteTimeRemaining, ui->white_timer);
     updateLCD(blackTimeRemaining, ui->black_timer);
 
-    // 타이머 설정 (10ms마다 업데이트)
     connect(&whiteTimer, &QTimer::timeout, this, &chess::updateWhiteTimer);
     connect(&blackTimer, &QTimer::timeout, this, &chess::updateBlackTimer);
 }
@@ -27,6 +24,106 @@ chess::chess(QWidget *parent)
 chess::~chess()
 {
     delete ui;
+}
+
+// 마우스 클릭 이벤트 처리: 말을 선택합니다.
+void chess::mousePressEvent(QMouseEvent *event)
+{
+    if (pieceMovedInTurn) return;  // 이미 기물을 움직였다면 더 이상 이동 불가
+
+    QPointF clickPos = ui->graphicsView->mapToScene(event->pos());
+    QGraphicsItem *item = scene->itemAt(clickPos, QTransform());
+
+    if (item && event->button() == Qt::LeftButton) {
+        QGraphicsPixmapItem *piece = dynamic_cast<QGraphicsPixmapItem *>(item);
+        if (piece && isValidMove(piece)) {  // 현재 턴에 맞는 기물인지 확인
+            selectedPiece = piece;
+            originalPos = selectedPiece->pos();  // 원래 위치 저장
+            pieceOffset = clickPos - selectedPiece->pos();  // 클릭 지점과 말의 좌표 차이
+
+            // 선택된 기물의 색상 저장
+            QString piecePath = selectedPiece->data(0).toString();
+            isSelectedWhite = piecePath.contains("white");
+
+            isDragging = true;
+        }
+    }
+}
+
+
+// 마우스 이동 이벤트 처리: 선택된 말을 드래그합니다.
+void chess::mouseMoveEvent(QMouseEvent *event)
+{
+    if (isDragging && selectedPiece) {
+        QPointF movePos = ui->graphicsView->mapToScene(event->pos());
+        selectedPiece->setPos(movePos - pieceOffset);  // 중심 보정
+    }
+}
+
+// 마우스 해제 이벤트 처리: 드래그를 멈추고 말 위치를 확정합니다.
+void chess::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (isDragging && selectedPiece) {
+        QPointF releasePos = ui->graphicsView->mapToScene(event->pos());
+
+        // 체스판 범위 확인
+        if (releasePos.x() < 0 || releasePos.x() >= 640 ||
+            releasePos.y() < 0 || releasePos.y() >= 640) {
+            selectedPiece->setPos(originalPos);  // 범위 벗어나면 원래 위치로 복귀
+        } else {
+            int tileSize = 80;
+
+            // 놓은 칸 계산
+            int col = static_cast<int>(releasePos.x()) / tileSize;
+            int row = static_cast<int>(releasePos.y()) / tileSize;
+
+            // 해당 칸의 중앙 좌표 계산
+            qreal centerX = col * tileSize + tileSize / 2;
+            qreal centerY = row * tileSize + tileSize / 2;
+
+            // 중앙에 있는 기물 탐색
+            QGraphicsItem* existingItem = scene->itemAt(QPointF(centerX, centerY), QTransform());
+            QGraphicsPixmapItem* capturedPiece = dynamic_cast<QGraphicsPixmapItem*>(existingItem);
+
+            // 상대방 기물만 제거
+            if (capturedPiece && capturedPiece != selectedPiece) {
+                QString capturedPath = capturedPiece->data(0).toString();
+                bool isCapturedWhite = capturedPath.contains("white");
+
+                // 현재 턴에 맞는 상대방 기물일 때만 제거
+                if ((isWhiteTurn && !isCapturedWhite) || (!isWhiteTurn && isCapturedWhite)) {
+                    qDebug() << "Captured piece at:" << capturedPiece->pos();
+                    scene->removeItem(capturedPiece);  // 기물 삭제
+                    delete capturedPiece;  // 메모리 해제
+                }
+            }
+
+            // 선택된 기물을 새로운 칸의 중앙에 배치
+            selectedPiece->setPos(centerX - selectedPiece->boundingRect().width() / 2,
+                                  centerY - selectedPiece->boundingRect().height() / 2);
+
+            pieceMovedInTurn = true;  // 기물이 움직였음을 표시
+        }
+
+        isDragging = false;
+        selectedPiece = nullptr;
+    }
+}
+
+
+
+
+bool chess::isValidMove(QGraphicsPixmapItem* piece)
+{
+    // QGraphicsPixmapItem에서 이미지 경로 가져오기
+    QString piecePath = piece->data(0).toString();
+    if (piecePath.isEmpty()) return false;
+
+    // 이미지 경로에서 기물의 색상 확인
+    bool isWhitePiece = piecePath.contains("white");
+
+    // 현재 턴에 맞는 기물인지 확인
+    return (isWhiteTurn && isWhitePiece) || (!isWhiteTurn && !isWhitePiece);
 }
 
 // 체스판 그리기 (8x8 칸)
@@ -45,17 +142,24 @@ void chess::drawChessBoard()
 // 체스말을 주어진 위치에 배치하는 함수
 QGraphicsPixmapItem* chess::addPiece(const QString& imagePath, int row, int col)
 {
-    qDebug() << "Trying to load image from path:" << imagePath; // 추가 디버깅
+    qDebug() << "Trying to load image from path:" << imagePath;
     QPixmap piece(imagePath);
     if (piece.isNull()) {
-        qDebug() << "Failed to load image:" << imagePath;  // 여기에서 경로를 출력
-        return nullptr; // 혹은 적절한 오류 처리
+        qDebug() << "Failed to load image:" << imagePath;
+        return nullptr;
     }
+
     piece = piece.scaled(80, 80);  // 말의 크기를 80x80으로 맞춤
-    QGraphicsPixmapItem* item = scene->addPixmap(piece);
-    item->setPos(col * 80, row * 80);  // 체스판 위치에 맞게 배치
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(piece);
+    item->setPos(col * 80, row * 80);
+
+    // 이미지 경로를 QGraphicsPixmapItem의 사용자 데이터로 저장
+    item->setData(0, imagePath);  // 키 0번에 이미지 경로 저장
+
+    scene->addItem(item);
     return item;
 }
+
 
 // LCD 업데이트: 남은 시간을 분:초.밀리초 형식으로 표시
 void chess::updateLCD(int timeMs, QLCDNumber *lcd)
@@ -97,15 +201,22 @@ void chess::updateBlackTimer()
 // 흰색 턴 종료: 검은색 타이머 시작
 void chess::on_white_done_clicked()
 {
+    if (!pieceMovedInTurn) return;  // 기물이 움직이지 않았다면 턴 종료 불가
+
     whiteTimer.stop();
-    blackTimer.start(10);  // 10ms마다 업데이트
+    blackTimer.start(10);  // 흑의 타이머 시작
+    isWhiteTurn = false;   // 흑의 턴으로 변경
+    pieceMovedInTurn = false;  // 다음 턴을 위해 초기화
 }
 
-// 검은색 턴 종료: 흰색 타이머 시작
 void chess::on_black_done_clicked()
 {
+    if (!pieceMovedInTurn) return;  // 기물이 움직이지 않았다면 턴 종료 불가
+
     blackTimer.stop();
-    whiteTimer.start(10);  // 10ms마다 업데이트
+    whiteTimer.start(10);  // 백의 타이머 시작
+    isWhiteTurn = true;    // 백의 턴으로 변경
+    pieceMovedInTurn = false;  // 다음 턴을 위해 초기화
 }
 
 // 체스판에 말 배치
@@ -149,3 +260,15 @@ void chess::placePieces()
     addPiece(":/images/black_knight.png", 0, 6);
     addPiece(":/images/black_rook.png", 0, 7);
 }
+
+void chess::on_black_giveup_clicked()
+{
+
+}
+
+
+void chess::on_white_giveup_clicked()
+{
+
+}
+
