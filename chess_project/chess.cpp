@@ -4,7 +4,7 @@
 #include <QPen>
 
 chess::chess(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::chess)
+    : QMainWindow(parent), ui(new Ui::chess), isWhite(true)
 {
     ui->setupUi(this);
     scene = new QGraphicsScene(this);
@@ -109,8 +109,13 @@ void chess::mousePressEvent(QMouseEvent *event)
 
 // 마우스 릴리스: 기물 이동 및 잡기 처리
 void chess::mouseReleaseEvent(QMouseEvent *event) {
-    if (!selectedPiece || pieceMovedInTurn) {
-        qDebug() << "Move rejected - No piece selected or piece already moved this turn";
+    if (!selectedPiece) {
+        qDebug() << "에러: 기물이 선택되지 않았습니다.";
+        return;
+    }
+
+    if (pieceMovedInTurn) {
+        qDebug() << "에러: 이번 턴에서 이미 기물이 움직였습니다.";
         return;
     }
 
@@ -121,7 +126,7 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
 
     // 체스판 범위 체크
     if (row < 0 || row > 7 || col < 0 || col > 7) {
-        qDebug() << "Move rejected - Outside chess board";
+        qDebug() << "에러: 체스판 외부로 이동할 수 없습니다.";
         selectedPiece->setPos(originalPos);
         selectedPiece = nullptr;
         return;
@@ -132,7 +137,7 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
     int startCol = static_cast<int>(originalPos.x()) / tileSize;
 
     if (!isValidMove(pieceType, startRow, startCol, row, col)) {
-        qDebug() << "Move rejected - Invalid move according to chess rules";
+        qDebug() << "에러: 유효하지 않은 움직임입니다. 해당 기물 규칙을 따르지 않았습니다.";
         selectedPiece->setPos(originalPos);
         selectedPiece = nullptr;
         return;
@@ -152,16 +157,28 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
 
     // 기물 잡기
     if (capturedPiece) {
+        if (isSameColor(selectedPiece, capturedPiece)) {
+            qDebug() << "에러: 같은 색의 기물은 잡을 수 없습니다.";
+            selectedPiece->setPos(originalPos);
+            selectedPiece = nullptr;
+            return;
+        }
+        QString capturedPieceType = getPieceType(capturedPiece);
+        if (capturedPieceType == "king") {
+            declareWinner(isWhite ? "흰색" : "검은색");
+            return;  // 게임 종료
+        }
         scene->removeItem(capturedPiece);
         delete capturedPiece;
-        qDebug() << "Piece captured!";
+        qDebug() << "알림: 기물을 잡았습니다!";
     }
 
     // 기물 이동
     selectedPiece->setPos(col * 80, row * 80);
     selectedPiece = nullptr;
     pieceMovedInTurn = true;
-    qDebug() << "Piece moved successfully";
+    isWhite = !isWhite;
+    qDebug() << "알림: 기물이 성공적으로 이동했습니다.";
 }
 
 
@@ -264,16 +281,16 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
     }
 
     bool isWhite = selectedPiece->data(0).toString().contains("white");
-    qDebug() << "Is white piece:" << isWhite;
-    qDebug() << "Row difference:" << rowDiff;
-    qDebug() << "Column difference:" << colDiff;
-    qDebug() << "Target piece exists:" << (targetPiece != nullptr);
+    qDebug() << "기물색:" << isWhite;
+    qDebug() << "가로 칸수:" << rowDiff;
+    qDebug() << "세로 칸수:" << colDiff;
+    qDebug() << "상대 기물 존재:" << (targetPiece != nullptr);
 
     if (pieceType == "pawn") {
         // 전진 이동 (수직 이동)
         if (colDiff == 0) {
             if (targetPiece) {
-                qDebug() << "Cannot move forward - piece in the way";
+                qDebug() << "경로에 기물이 있습니다";
                 return false; // 전진 경로에 기물이 있으면 이동 불가
             }
 
@@ -382,17 +399,45 @@ bool chess::isPathClear(int startRow, int startCol, int endRow, int endCol) {
     return true;  // 경로에 기물이 없음
 }
 
-
-
-
-
-void chess::on_black_giveup_clicked()
-{
-
+// 승리/무승부 메시지 출력 함수
+void chess::declareWinner(const QString& winner) {
+    QMessageBox::information(this, "게임 종료", winner + " 승리!");
+    resetGame();
 }
 
+// 시간 초과 확인 함수
+void chess::checkTimeOver() {
+    if (whiteTimeRemaining <= 0) {
+        declareWinner("검은색");
+    } else if (blackTimeRemaining <= 0) {
+        declareWinner("흰색");
+    }
+}
+void chess::resetGame() {
+    // 모든 기물 제거
+    scene->clear();
 
-void chess::on_white_giveup_clicked()
-{
+    // 초기화 변수 설정
+    pieceMovedInTurn = false;
+    isWhiteTurn = true; // 흰색이 먼저 시작
 
+    // 타이머 초기화
+    whiteTimeRemaining = 600000;  // 10분
+    blackTimeRemaining = 600000;  // 10분
+    updateLCD(whiteTimeRemaining, ui->white_timer);
+    updateLCD(blackTimeRemaining, ui->black_timer);
+
+    // 체스판과 기물 재배치
+    drawChessBoard();
+    placePieces();
+
+    qDebug() << "게임이 초기화되었습니다.";
+}
+
+void chess::on_white_giveup_clicked() {
+    declareWinner("검은색");
+}
+
+void chess::on_black_giveup_clicked() {
+    declareWinner("흰색");
 }

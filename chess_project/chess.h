@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QMessageBox>
 
 namespace Ui
 {
@@ -35,14 +36,18 @@ private:
     bool pieceMovedInTurn = false;
     bool isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol);
     bool isPathClear(int startRow, int startCol, int endRow, int endCol);  // 경로에 장애물이 있는지 검사
+    bool isWhite;
     QString getPieceType(QGraphicsPixmapItem* piece);
 
     QTimer whiteTimer;
     QTimer blackTimer;
-    int whiteTimeRemaining = 300000;
-    int blackTimeRemaining = 300000;
+    int whiteTimeRemaining = 600000;
+    int blackTimeRemaining = 600000;
 
 
+    void resetGame();
+    void checkTimeOver();
+    void declareWinner(const QString& winner);
     void drawChessBoard();
     QGraphicsPixmapItem* addPiece(const QString& imagePath, int row, int col);
     void placePieces();
