@@ -9,7 +9,8 @@
 #include <QMouseEvent>
 #include <QDebug>
 
-namespace Ui {
+namespace Ui
+{
 class chess;
 }
 
@@ -32,11 +33,15 @@ private:
     QPointF originalPos;
     bool isWhiteTurn = true;
     bool pieceMovedInTurn = false;
+    bool isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol);
+    bool isPathClear(int startRow, int startCol, int endRow, int endCol);  // 경로에 장애물이 있는지 검사
+    QString getPieceType(QGraphicsPixmapItem* piece);
 
     QTimer whiteTimer;
     QTimer blackTimer;
-    int whiteTimeRemaining = 60000;
-    int blackTimeRemaining = 60000;
+    int whiteTimeRemaining = 300000;
+    int blackTimeRemaining = 300000;
+
 
     void drawChessBoard();
     QGraphicsPixmapItem* addPiece(const QString& imagePath, int row, int col);
