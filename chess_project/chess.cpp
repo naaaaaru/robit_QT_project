@@ -145,6 +145,15 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
+    if ((isWhite && !selectedPiece->data(0).toString().contains("white")) ||
+        (!isWhite && selectedPiece->data(0).toString().contains("white")))
+    {
+        qDebug() << "에러: 현재 턴의 기물이 아닙니다.";
+        selectedPiece->setPos(originalPos);
+        selectedPiece = nullptr;
+        return;
+    }
+
     QString pieceType = getPieceType(selectedPiece);
     int startRow = static_cast<int>(originalPos.y()) / tileSize;
     int startCol = static_cast<int>(originalPos.x()) / tileSize;
