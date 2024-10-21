@@ -35,7 +35,15 @@ void chess::drawChessBoard()
         for (int col = 0; col < 8; ++col)
         {
             QRectF tile(col * tileSize, row * tileSize, tileSize, tileSize);
-            QBrush brush((row + col) % 2 == 0 ? Qt::white : Qt::black);
+            QBrush brush;
+            if ((row + col) % 2 == 0)
+            {
+                brush = Qt::white;  // 흰색
+            }
+            else
+            {
+                brush = Qt::black;  // 검은색
+            }
             scene->addRect(tile, QPen(Qt::black), brush);
         }
     }
@@ -52,6 +60,7 @@ QGraphicsPixmapItem* chess::addPiece(const QString& imagePath, int row, int col)
     // 이미지 경로를 사용자 데이터로 저장 (색상 구분에 사용)
     item->setData(0, imagePath);
     scene->addItem(item);
+
     return item;
 }
 
@@ -108,13 +117,16 @@ void chess::mousePressEvent(QMouseEvent *event)
 }
 
 // 마우스 릴리스: 기물 이동 및 잡기 처리
-void chess::mouseReleaseEvent(QMouseEvent *event) {
-    if (!selectedPiece) {
+void chess::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (!selectedPiece)
+    {
         qDebug() << "에러: 기물이 선택되지 않았습니다.";
         return;
     }
 
-    if (pieceMovedInTurn) {
+    if (pieceMovedInTurn)
+    {
         qDebug() << "에러: 이번 턴에서 이미 기물이 움직였습니다.";
         return;
     }
@@ -125,7 +137,8 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
     int row = static_cast<int>(releasePos.y()) / tileSize;
 
     // 체스판 범위 체크
-    if (row < 0 || row > 7 || col < 0 || col > 7) {
+    if (row < 0 || row > 7 || col < 0 || col > 7)
+    {
         qDebug() << "에러: 체스판 외부로 이동할 수 없습니다.";
         selectedPiece->setPos(originalPos);
         selectedPiece = nullptr;
@@ -136,7 +149,8 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
     int startRow = static_cast<int>(originalPos.y()) / tileSize;
     int startCol = static_cast<int>(originalPos.x()) / tileSize;
 
-    if (!isValidMove(pieceType, startRow, startCol, row, col)) {
+    if (!isValidMove(pieceType, startRow, startCol, row, col))
+    {
         qDebug() << "에러: 유효하지 않은 움직임입니다. 해당 기물 규칙을 따르지 않았습니다.";
         selectedPiece->setPos(originalPos);
         selectedPiece = nullptr;
@@ -146,9 +160,13 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
     // 타겟 위치의 기물 확인 (QGraphicsPixmapItem만 고려)
     QGraphicsPixmapItem* capturedPiece = nullptr;
     QList<QGraphicsItem*> items = scene->items(QPointF(col * 80 + 40, row * 80 + 40));
-    for (QGraphicsItem* item : items) {
-        if (QGraphicsPixmapItem* pixmapItem = dynamic_cast<QGraphicsPixmapItem*>(item)) {
-            if (pixmapItem != selectedPiece) {
+
+    for (QGraphicsItem* item : items)
+    {
+        if (QGraphicsPixmapItem* pixmapItem = dynamic_cast<QGraphicsPixmapItem*>(item))
+        {
+            if (pixmapItem != selectedPiece)
+            {
                 capturedPiece = pixmapItem;
                 break;
             }
@@ -156,15 +174,19 @@ void chess::mouseReleaseEvent(QMouseEvent *event) {
     }
 
     // 기물 잡기
-    if (capturedPiece) {
-        if (isSameColor(selectedPiece, capturedPiece)) {
+    if (capturedPiece)
+    {
+        if (isSameColor(selectedPiece, capturedPiece))
+        {
             qDebug() << "에러: 같은 색의 기물은 잡을 수 없습니다.";
             selectedPiece->setPos(originalPos);
             selectedPiece = nullptr;
             return;
         }
+
         QString capturedPieceType = getPieceType(capturedPiece);
-        if (capturedPieceType == "king") {
+        if (capturedPieceType == "king")
+        {
             declareWinner(isWhite ? "흰색" : "검은색");
             return;  // 게임 종료
         }
@@ -259,7 +281,8 @@ QString chess::getPieceType(QGraphicsPixmapItem* piece)
     return "";
 }
 
-bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol) {
+bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol)
+{
     qDebug() << "Moving piece:" << pieceType;
     qDebug() << "From:" << startRow << startCol;
     qDebug() << "To:" << endRow << endCol;
@@ -268,15 +291,18 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
     int colDiff = endCol - startCol;
 
     // 체스판 범위 체크
-    if (endRow < 0 || endRow > 7 || endCol < 0 || endCol > 7) {
+    if (endRow < 0 || endRow > 7 || endCol < 0 || endCol > 7)
+    {
         return false;
     }
 
     // 타겟 위치의 기물 확인 (QGraphicsPixmapItem만 고려)
     QGraphicsPixmapItem* targetPiece = nullptr;
     QList<QGraphicsItem*> items = scene->items(QPointF(endCol * 80 + 40, endRow * 80 + 40));
-    for (QGraphicsItem* item : items) {
-        if (QGraphicsPixmapItem* pixmapItem = dynamic_cast<QGraphicsPixmapItem*>(item)) {
+    for (QGraphicsItem* item : items)
+    {
+        if (QGraphicsPixmapItem* pixmapItem = dynamic_cast<QGraphicsPixmapItem*>(item))
+        {
             targetPiece = pixmapItem;
             break;
         }
@@ -288,23 +314,29 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
     qDebug() << "세로 칸수:" << colDiff;
     qDebug() << "상대 기물 존재:" << (targetPiece != nullptr);
 
-    if (pieceType == "pawn") {
+    if (pieceType == "pawn")
+    {
         // 전진 이동 (수직 이동)
-        if (colDiff == 0) {
-            if (targetPiece) {
+        if (colDiff == 0)
+        {
+            if (targetPiece)
+            {
                 qDebug() << "경로에 기물이 있습니다";
                 return false; // 전진 경로에 기물이 있으면 이동 불가
             }
 
-            if (isWhite) {
+            if (isWhite)
+            {
                 // 백색 폰
                 if (rowDiff == -1) return true; // 한 칸 전진
                 if (startRow == 6 && rowDiff == -2) { // 첫 이동시 두 칸 전진
                     // 중간 경로 체크
                     QList<QGraphicsItem*> midItems = scene->items(QPointF(startCol * 80 + 40, (startRow - 1) * 80 + 40));
                     bool midPathClear = true;
-                    for (QGraphicsItem* item : midItems) {
-                        if (dynamic_cast<QGraphicsPixmapItem*>(item)) {
+                    for (QGraphicsItem* item : midItems)
+                    {
+                        if (dynamic_cast<QGraphicsPixmapItem*>(item))
+                        {
                             midPathClear = false;
                             break;
                         }
@@ -314,12 +346,15 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
             } else {
                 // 흑색 폰
                 if (rowDiff == 1) return true; // 한 칸 전진
-                if (startRow == 1 && rowDiff == 2) { // 첫 이동시 두 칸 전진
+                if (startRow == 1 && rowDiff == 2)
+                { // 첫 이동시 두 칸 전진
                     // 중간 경로 체크
                     QList<QGraphicsItem*> midItems = scene->items(QPointF(startCol * 80 + 40, (startRow + 1) * 80 + 40));
                     bool midPathClear = true;
-                    for (QGraphicsItem* item : midItems) {
-                        if (dynamic_cast<QGraphicsPixmapItem*>(item)) {
+                    for (QGraphicsItem* item : midItems)
+                    {
+                        if (dynamic_cast<QGraphicsPixmapItem*>(item))
+                        {
                             midPathClear = false;
                             break;
                         }
@@ -330,11 +365,14 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
         }
 
         // 대각선 공격
-        if (abs(colDiff) == 1) {
-            if (isWhite && rowDiff == -1) {
+        if (abs(colDiff) == 1)
+        {
+            if (isWhite && rowDiff == -1)
+            {
                 return targetPiece && !isSameColor(selectedPiece, targetPiece);
             }
-            if (!isWhite && rowDiff == 1) {
+            if (!isWhite && rowDiff == 1)
+            {
                 return targetPiece && !isSameColor(selectedPiece, targetPiece);
             }
         }
@@ -344,29 +382,34 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
 
 
     // 룩: 같은 행 또는 열로 이동하며 경로에 장애물이 없어야 함
-    if (pieceType == "rook") {
+    if (pieceType == "rook")
+    {
         return (startRow == endRow || startCol == endCol) && isPathClear(startRow, startCol, endRow, endCol);
     }
 
     // 비숍: 대각선 이동하며 경로에 장애물이 없어야 함
-    if (pieceType == "bishop") {
+    if (pieceType == "bishop")
+    {
         return abs(endRow - startRow) == abs(endCol - startCol) && isPathClear(startRow, startCol, endRow, endCol);
     }
 
     // 퀸: 행, 열, 대각선으로 이동 가능하며 경로에 장애물이 없어야 함
-    if (pieceType == "queen") {
+    if (pieceType == "queen")
+    {
         return (startRow == endRow || startCol == endCol || abs(endRow - startRow) == abs(endCol - startCol)) &&
                isPathClear(startRow, startCol, endRow, endCol);
     }
 
     // 나이트: 경로와 관계없이 L자 형태로 이동
-    if (pieceType == "knight") {
+    if (pieceType == "knight")
+    {
         return (abs(endRow - startRow) == 2 && abs(endCol - startCol) == 1) ||
                (abs(endRow - startRow) == 1 && abs(endCol - startCol) == 2);
     }
 
     // 킹: 한 칸씩 이동
-    if (pieceType == "king") {
+    if (pieceType == "king")
+    {
         return abs(endRow - startRow) <= 1 && abs(endCol - startCol) <= 1;
     }
 
@@ -375,7 +418,8 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
 
 
 
-bool chess::isPathClear(int startRow, int startCol, int endRow, int endCol) {
+bool chess::isPathClear(int startRow, int startCol, int endRow, int endCol)
+{
     int rowStep = (endRow - startRow) == 0 ? 0 : (endRow - startRow) / abs(endRow - startRow);
     int colStep = (endCol - startCol) == 0 ? 0 : (endCol - startCol) / abs(endCol - startCol);
 
@@ -383,13 +427,16 @@ bool chess::isPathClear(int startRow, int startCol, int endRow, int endCol) {
     int currentCol = startCol + colStep;
 
     // 목표 지점 전까지 경로를 검사
-    while (currentRow != endRow || currentCol != endCol) {
+    while (currentRow != endRow || currentCol != endCol)
+    {
         // 해당 좌표에 있는 아이템들 확인
         QList<QGraphicsItem*> items = scene->items(QPointF(currentCol * 80 + 40, currentRow * 80 + 40));
 
         // 기물(Pixmap Item)만 체크
-        for (QGraphicsItem* item : items) {
-            if (dynamic_cast<QGraphicsPixmapItem*>(item)) {
+        for (QGraphicsItem* item : items)
+        {
+            if (dynamic_cast<QGraphicsPixmapItem*>(item))
+            {
                 return false;  // 경로에 기물이 있으면 false 반환
             }
         }
@@ -402,20 +449,26 @@ bool chess::isPathClear(int startRow, int startCol, int endRow, int endCol) {
 }
 
 // 승리/무승부 메시지 출력 함수
-void chess::declareWinner(const QString& winner) {
+void chess::declareWinner(const QString& winner)
+{
     QMessageBox::information(this, "게임 종료", winner + " 승리!");
     resetGame();
 }
 
 // 시간 초과 확인 함수
-void chess::checkTimeOver() {
-    if (whiteTimeRemaining <= 0) {
+void chess::checkTimeOver()
+{
+    if (whiteTimeRemaining <= 0)
+    {
         declareWinner("검은색");
-    } else if (blackTimeRemaining <= 0) {
+    }
+    else if (blackTimeRemaining <= 0)
+    {
         declareWinner("흰색");
     }
 }
-void chess::resetGame() {
+void chess::resetGame()
+{
     // 모든 기물 제거
     scene->clear();
 
@@ -436,11 +489,13 @@ void chess::resetGame() {
     qDebug() << "게임이 초기화되었습니다.";
 }
 
-void chess::on_white_giveup_clicked() {
+void chess::on_white_giveup_clicked()
+{
     declareWinner("검은색");
 }
 
-void chess::on_black_giveup_clicked() {
+void chess::on_black_giveup_clicked()
+{
     declareWinner("흰색");
 }
 
@@ -471,9 +526,12 @@ void chess::updateTurnDisplay()
     static bool isWhiteTurn = true;
 
     // QTextBrowser에 표시할 텍스트 설정
-    if (isWhiteTurn) {
+    if (isWhiteTurn)
+    {
         ui->textBrowser->setText("흑의 턴입니다");
-    } else {
+    }
+    else
+    {
         ui->textBrowser->setText("백의 턴입니다");
     }
 
