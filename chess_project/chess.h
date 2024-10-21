@@ -44,6 +44,7 @@ private:
     int whiteTimeRemaining = 600000;
     int blackTimeRemaining = 600000;
 
+    void updateTurnDisplay();
 
     void resetGame();
     void checkTimeOver();
@@ -61,6 +62,7 @@ private slots:
     void on_black_done_clicked();
     void on_white_giveup_clicked();
     void on_black_giveup_clicked();
+    void on_help_clicked();
 };
 
 #endif // CHESS_H

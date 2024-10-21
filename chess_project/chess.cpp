@@ -228,6 +228,7 @@ void chess::on_white_done_clicked()
         isWhiteTurn = false;
         pieceMovedInTurn = false;  // 턴 초기화
         qDebug() << "흰색 턴이 끝났습니다. 검은색 차례입니다.";
+        updateTurnDisplay();
     }
 }
 
@@ -242,6 +243,7 @@ void chess::on_black_done_clicked()
         isWhiteTurn = true;
         pieceMovedInTurn = false;  // 턴 초기화
         qDebug() << "검은색 턴이 끝났습니다. 흰색 차례입니다.";
+        updateTurnDisplay();
     }
 }
 
@@ -441,3 +443,43 @@ void chess::on_white_giveup_clicked() {
 void chess::on_black_giveup_clicked() {
     declareWinner("흰색");
 }
+
+void chess::on_help_clicked()
+{
+    // 새로운 윈도우 창을 만들어 이미지를 보여줌
+    QWidget *helpWindow = new QWidget();
+    helpWindow->setWindowTitle("Chess Rules");
+
+    // QLabel을 사용하여 이미지를 보여줌
+    QLabel *imageLabel = new QLabel(helpWindow);
+    QPixmap chessRulesPixmap(":/images/chess_rule.png");
+
+    // 이미지 크기를 조정하고 QLabel에 설정
+    imageLabel->setPixmap(chessRulesPixmap);
+    imageLabel->setScaledContents(true); // 이미지가 QLabel 크기에 맞게 조정됨
+
+    // 창 크기를 이미지 크기에 맞게 조정
+    helpWindow->resize(chessRulesPixmap.size());
+
+    // 창을 표시
+    helpWindow->show();
+}
+
+void chess::updateTurnDisplay()
+{
+    // 현재 턴을 저장하는 변수가 있다고 가정 (true: 백, false: 흑)
+    static bool isWhiteTurn = true;
+
+    // QTextBrowser에 표시할 텍스트 설정
+    if (isWhiteTurn) {
+        ui->textBrowser->setText("흑의 턴입니다");
+    } else {
+        ui->textBrowser->setText("백의 턴입니다");
+    }
+
+    // 턴을 전환
+    isWhiteTurn = !isWhiteTurn;
+}
+
+
+
