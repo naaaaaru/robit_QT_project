@@ -33,7 +33,7 @@
    <widget class="QLCDNumber" name="black_timer">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>710</x>
       <y>10</y>
       <width>221</width>
       <height>81</height>
@@ -43,7 +43,7 @@
    <widget class="QLCDNumber" name="white_timer">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>710</x>
       <y>600</y>
       <width>221</width>
       <height>81</height>
@@ -79,7 +79,7 @@
    <widget class="QPushButton" name="black_giveup">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>940</x>
       <y>10</y>
       <width>111</width>
       <height>81</height>
@@ -92,7 +92,7 @@
    <widget class="QPushButton" name="white_giveup">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>940</x>
       <y>600</y>
       <width>111</width>
       <height>81</height>

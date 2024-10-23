@@ -619,36 +619,26 @@ void chess::promotePawn(QGraphicsPixmapItem* pawn, int row, int col)
     layout->addWidget(bishopButton);
     layout->addWidget(knightButton);
 
-    QString color;
-    if (pawn->data(0).toString().contains("white"))
-    {
-        color = "white";
-    }
-    else
-    {
-        color = "black";
-    }
-    // queenButton 클릭 이벤트 처리
-    connect(queenButton, &QPushButton::clicked, [&]()
-            {
-                changePiece(pawn, QString(":/images/%1_queen.png").arg(color), row, col);
-                promotionDialog.accept();
-            });
-    connect(rookButton, &QPushButton::clicked, [&]()
-            {
-                changePiece(pawn, QString(":/images/%1_rook.png").arg(color), row, col);
-                promotionDialog.accept();
-            });
-    connect(bishopButton, &QPushButton::clicked, [&]()
-            {
-                changePiece(pawn, QString(":/images/%1_bishop.png").arg(color), row, col);
-                promotionDialog.accept();
-            });
-    connect(knightButton, &QPushButton::clicked, [&]()
-            {
-                changePiece(pawn, QString(":/images/%1_knight.png").arg(color), row, col);
-                promotionDialog.accept();
-            });
+    QString color = pawn->data(0).toString().contains("white") ? "white" : "black";
+
+    connect(queenButton, &QPushButton::clicked, [&]() {
+        changePiece(pawn, QString(":/images/%1_queen.png").arg(color), row, col);
+        promotionDialog.accept();
+    });
+    connect(rookButton, &QPushButton::clicked, [&]() {
+        changePiece(pawn, QString(":/images/%1_rook.png").arg(color), row, col);
+        promotionDialog.accept();
+    });
+    connect(bishopButton, &QPushButton::clicked, [&]() {
+        changePiece(pawn, QString(":/images/%1_bishop.png").arg(color), row, col);
+        promotionDialog.accept();
+    });
+    connect(knightButton, &QPushButton::clicked, [&]() {
+        changePiece(pawn, QString(":/images/%1_knight.png").arg(color), row, col);
+        promotionDialog.accept();
+    });
+
+    promotionDialog.exec();
 }
 
 void chess::changePiece(QGraphicsPixmapItem* oldPiece, const QString& newImagePath, int row, int col)
