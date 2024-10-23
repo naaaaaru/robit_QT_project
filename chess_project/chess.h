@@ -32,28 +32,34 @@ private:
     QGraphicsScene *scene;
     QGraphicsPixmapItem *selectedPiece = nullptr;
     QPointF originalPos;
-    bool isWhiteTurn = true;
-    bool pieceMovedInTurn = false;
-    bool isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol);
-    bool isPathClear(int startRow, int startCol, int endRow, int endCol);  // 경로에 장애물이 있는지 검사
-    bool isWhite;
-    QString getPieceType(QGraphicsPixmapItem* piece);
 
-    QTimer whiteTimer;
-    QTimer blackTimer;
+    bool isWhiteTurn = true;
+    bool debugMode = false;
+    bool pieceMovedInTurn = false;
+
     int whiteTimeRemaining = 600000;
     int blackTimeRemaining = 600000;
 
-    void updateTurnDisplay();
+    bool isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol);
+    bool isPathClear(int startRow, int startCol, int endRow, int endCol);
+    QString getPieceType(QGraphicsPixmapItem* piece);
 
+    void updateTurnDisplay();
     void resetGame();
     void checkTimeOver();
     void declareWinner(const QString& winner);
     void drawChessBoard();
+    void addPieceToStorage(QGraphicsPixmapItem* piece, QGraphicsView* storageView);
+
+    void promotePawn(QGraphicsPixmapItem* pawn, int row, int col);
+    void changePiece(QGraphicsPixmapItem* oldPiece, const QString& newImagePath, int row, int col);
     QGraphicsPixmapItem* addPiece(const QString& imagePath, int row, int col);
     void placePieces();
     void updateLCD(int timeMs, QLCDNumber *lcd);
     bool isSameColor(QGraphicsPixmapItem *piece1, QGraphicsPixmapItem *piece2);
+
+    QTimer whiteTimer;
+    QTimer blackTimer;
 
 private slots:
     void updateWhiteTimer();
@@ -62,7 +68,8 @@ private slots:
     void on_black_done_clicked();
     void on_white_giveup_clicked();
     void on_black_giveup_clicked();
-    void on_help_clicked();
+    void on_help_button_clicked();
+    void on_debug_button_clicked();
 };
 
 #endif // CHESS_H

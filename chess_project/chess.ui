@@ -33,9 +33,9 @@
    <widget class="QLCDNumber" name="black_timer">
     <property name="geometry">
      <rect>
-      <x>820</x>
+      <x>830</x>
       <y>10</y>
-      <width>231</width>
+      <width>221</width>
       <height>81</height>
      </rect>
     </property>
@@ -43,9 +43,9 @@
    <widget class="QLCDNumber" name="white_timer">
     <property name="geometry">
      <rect>
-      <x>820</x>
+      <x>830</x>
       <y>600</y>
-      <width>231</width>
+      <width>221</width>
       <height>81</height>
      </rect>
     </property>
@@ -53,10 +53,10 @@
    <widget class="QPushButton" name="black_done">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>10</y>
-      <width>101</width>
-      <height>81</height>
+      <x>890</x>
+      <y>100</y>
+      <width>161</width>
+      <height>141</height>
      </rect>
     </property>
     <property name="text">
@@ -66,10 +66,10 @@
    <widget class="QPushButton" name="white_done">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>600</y>
-      <width>101</width>
-      <height>81</height>
+      <x>890</x>
+      <y>450</y>
+      <width>161</width>
+      <height>141</height>
      </rect>
     </property>
     <property name="text">
@@ -79,9 +79,9 @@
    <widget class="QPushButton" name="black_giveup">
     <property name="geometry">
      <rect>
-      <x>900</x>
-      <y>110</y>
-      <width>151</width>
+      <x>710</x>
+      <y>10</y>
+      <width>111</width>
       <height>81</height>
      </rect>
     </property>
@@ -92,9 +92,9 @@
    <widget class="QPushButton" name="white_giveup">
     <property name="geometry">
      <rect>
-      <x>900</x>
-      <y>500</y>
-      <width>151</width>
+      <x>710</x>
+      <y>600</y>
+      <width>111</width>
       <height>81</height>
      </rect>
     </property>
@@ -115,13 +115,13 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="help">
+   <widget class="QPushButton" name="help_button">
     <property name="geometry">
      <rect>
       <x>710</x>
-      <y>270</y>
-      <width>81</width>
-      <height>81</height>
+      <y>250</y>
+      <width>101</width>
+      <height>91</height>
      </rect>
     </property>
     <property name="font">
@@ -151,9 +151,9 @@
     <property name="geometry">
      <rect>
       <x>710</x>
-      <y>370</y>
-      <width>271</width>
-      <height>81</height>
+      <y>350</y>
+      <width>341</width>
+      <height>91</height>
      </rect>
     </property>
     <property name="font">
@@ -161,6 +161,39 @@
       <pointsize>32</pointsize>
       <bold>true</bold>
      </font>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="debug_button">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>250</y>
+      <width>231</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>debug</string>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="black_got">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>100</y>
+      <width>171</width>
+      <height>141</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="white_got">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>450</y>
+      <width>171</width>
+      <height>141</height>
+     </rect>
     </property>
    </widget>
   </widget>

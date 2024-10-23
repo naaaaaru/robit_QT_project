@@ -2,12 +2,21 @@
 #include "./ui_chess.h"
 #include <QBrush>
 #include <QPen>
+#include <QVBoxLayout>
+#include <QDialog>
+#include <QPushButton>
 
 chess::chess(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::chess), isWhite(true)
+    : QMainWindow(parent), ui(new Ui::chess), isWhiteTurn(true)
 {
     ui->setupUi(this);
     scene = new QGraphicsScene(this);
+    QGraphicsScene *whiteGotScene = new QGraphicsScene(this);
+    ui->white_got->setScene(whiteGotScene);
+
+    QGraphicsScene *blackGotScene = new QGraphicsScene(this);
+    ui->black_got->setScene(blackGotScene);
+
     ui->graphicsView->setScene(scene);
     qDebug() << "체스 게임이 시작되었습니다. 흰색부터 시작하세요.";
 
@@ -26,7 +35,6 @@ chess::~chess()
     delete ui;
 }
 
-// 체스판 그리기: 흑백 8x8 칸
 void chess::drawChessBoard()
 {
     int tileSize = 80;
@@ -38,33 +46,29 @@ void chess::drawChessBoard()
             QBrush brush;
             if ((row + col) % 2 == 0)
             {
-                brush = Qt::white;  // 흰색
+                brush = Qt::white;
             }
             else
             {
-                brush = Qt::black;  // 검은색
+                brush = Qt::black;
             }
             scene->addRect(tile, QPen(Qt::black), brush);
         }
     }
 }
 
-// 체스말 추가: 이미지 경로와 위치를 받아 추가
 QGraphicsPixmapItem* chess::addPiece(const QString& imagePath, int row, int col)
 {
     QPixmap piece(imagePath);
-    piece = piece.scaled(80, 80);  // 말 크기 조정
+    piece = piece.scaled(80, 80);
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(piece);
     item->setPos(col * 80, row * 80);
-
-    // 이미지 경로를 사용자 데이터로 저장 (색상 구분에 사용)
     item->setData(0, imagePath);
     scene->addItem(item);
 
     return item;
 }
 
-// 기물 배치: 초기 체스 기물 위치 설정
 void chess::placePieces()
 {
     // 백 기물 배치
@@ -90,7 +94,6 @@ void chess::placePieces()
     addPiece(":/images/black_rook.png", 0, 7);
 }
 
-// 같은 색 기물인지 확인하는 함수
 bool chess::isSameColor(QGraphicsPixmapItem *piece1, QGraphicsPixmapItem *piece2)
 {
     QString path1 = piece1->data(0).toString();
@@ -98,7 +101,6 @@ bool chess::isSameColor(QGraphicsPixmapItem *piece1, QGraphicsPixmapItem *piece2
     return path1.contains("white") == path2.contains("white");
 }
 
-// 마우스 클릭: 기물 선택
 void chess::mousePressEvent(QMouseEvent *event)
 {
     QPointF clickPos = ui->graphicsView->mapToScene(event->pos());
@@ -107,16 +109,24 @@ void chess::mousePressEvent(QMouseEvent *event)
     if (item && event->button() == Qt::LeftButton)
     {
         QGraphicsPixmapItem *piece = dynamic_cast<QGraphicsPixmapItem *>(item);
-        if (piece && isSameColor(piece, piece))  // 자신의 턴에 맞는 색만 선택 가능
+        if (piece)
         {
-            selectedPiece = piece;
-            originalPos = piece->pos();
-            qDebug() << "기물이 선택되었습니다.";
+            if ((isWhiteTurn && piece->data(0).toString().contains("white")) ||
+                (!isWhiteTurn && piece->data(0).toString().contains("black")))
+            {
+                selectedPiece = piece;
+                originalPos = piece->pos();
+                qDebug() << "기물이 선택되었습니다.";
+            }
+            else
+            {
+                qDebug() << "에러: 잘못된 색의 기물이 선택되었습니다.";
+            }
         }
     }
 }
 
-// 마우스 릴리스: 기물 이동 및 잡기 처리
+
 void chess::mouseReleaseEvent(QMouseEvent *event)
 {
     if (!selectedPiece)
@@ -125,18 +135,11 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
-    if (pieceMovedInTurn)
-    {
-        qDebug() << "에러: 이번 턴에서 이미 기물이 움직였습니다.";
-        return;
-    }
-
     QPointF releasePos = ui->graphicsView->mapToScene(event->pos());
     int tileSize = 80;
     int col = static_cast<int>(releasePos.x()) / tileSize;
     int row = static_cast<int>(releasePos.y()) / tileSize;
 
-    // 체스판 범위 체크
     if (row < 0 || row > 7 || col < 0 || col > 7)
     {
         qDebug() << "에러: 체스판 외부로 이동할 수 없습니다.";
@@ -145,34 +148,44 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
-    if ((isWhite && !selectedPiece->data(0).toString().contains("white")) ||
-        (!isWhite && selectedPiece->data(0).toString().contains("white")))
+    if (!debugMode)
     {
-        qDebug() << "에러: 현재 턴의 기물이 아닙니다.";
-        selectedPiece->setPos(originalPos);
-        selectedPiece = nullptr;
-        return;
+        if (pieceMovedInTurn)
+        {
+            qDebug() << "에러: 이번 턴에서 이미 기물이 움직였습니다.";
+            selectedPiece->setPos(originalPos);
+            selectedPiece = nullptr;
+            return;
+        }
+
+        if ((isWhiteTurn && !selectedPiece->data(0).toString().contains("white")) ||
+            (!isWhiteTurn && selectedPiece->data(0).toString().contains("white")))
+        {
+            qDebug() << "에러: 현재 턴의 기물이 아닙니다.";
+            selectedPiece->setPos(originalPos);
+            selectedPiece = nullptr;
+            return;
+        }
+
+        QString pieceType = getPieceType(selectedPiece);
+        int startRow = static_cast<int>(originalPos.y()) / tileSize;
+        int startCol = static_cast<int>(originalPos.x()) / tileSize;
+
+        if (!isValidMove(pieceType, startRow, startCol, row, col))
+        {
+            qDebug() << "에러: 유효하지 않은 움직임입니다. 해당 기물 규칙을 따르지 않았습니다.";
+            selectedPiece->setPos(originalPos);
+            selectedPiece = nullptr;
+            return;
+        }
     }
 
-    QString pieceType = getPieceType(selectedPiece);
-    int startRow = static_cast<int>(originalPos.y()) / tileSize;
-    int startCol = static_cast<int>(originalPos.x()) / tileSize;
-
-    if (!isValidMove(pieceType, startRow, startCol, row, col))
-    {
-        qDebug() << "에러: 유효하지 않은 움직임입니다. 해당 기물 규칙을 따르지 않았습니다.";
-        selectedPiece->setPos(originalPos);
-        selectedPiece = nullptr;
-        return;
-    }
-
-    // 타겟 위치의 기물 확인 (QGraphicsPixmapItem만 고려)
     QGraphicsPixmapItem* capturedPiece = nullptr;
     QList<QGraphicsItem*> items = scene->items(QPointF(col * 80 + 40, row * 80 + 40));
 
-    for (QGraphicsItem* item : items)
+    for (int i = 0; i < items.size(); ++i)
     {
-        if (QGraphicsPixmapItem* pixmapItem = dynamic_cast<QGraphicsPixmapItem*>(item))
+        if (QGraphicsPixmapItem* pixmapItem = dynamic_cast<QGraphicsPixmapItem*>(items[i]))
         {
             if (pixmapItem != selectedPiece)
             {
@@ -182,10 +195,9 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         }
     }
 
-    // 기물 잡기
     if (capturedPiece)
     {
-        if (isSameColor(selectedPiece, capturedPiece))
+        if (!debugMode && isSameColor(selectedPiece, capturedPiece))
         {
             qDebug() << "에러: 같은 색의 기물은 잡을 수 없습니다.";
             selectedPiece->setPos(originalPos);
@@ -194,9 +206,29 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         }
 
         QString capturedPieceType = getPieceType(capturedPiece);
+        QGraphicsView *storageView;
+
+        if (isWhiteTurn)
+        {
+            storageView = ui->white_got;
+        }
+        else
+        {
+            storageView = ui->black_got;
+        }
+        addPieceToStorage(capturedPiece, storageView);
+
         if (capturedPieceType == "king")
         {
-            declareWinner(isWhite ? "흰색" : "검은색");
+            if (isWhiteTurn)
+            {
+                declareWinner("흰색");
+            }
+            else
+            {
+                declareWinner("검은색");
+            }
+
             return;  // 게임 종료
         }
         scene->removeItem(capturedPiece);
@@ -204,17 +236,42 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         qDebug() << "알림: 기물을 잡았습니다!";
     }
 
-    // 기물 이동
     selectedPiece->setPos(col * 80, row * 80);
-    selectedPiece = nullptr;
-    pieceMovedInTurn = true;
-    isWhite = !isWhite;
-    qDebug() << "알림: 기물이 성공적으로 이동했습니다.";
+
+    QString pieceType = getPieceType(selectedPiece);
+    if (!debugMode && pieceType == "pawn" && (row == 0 || row == 7))
+    {
+        promotePawn(selectedPiece, row, col);
+    }
+
+    if (!debugMode)
+    {
+        selectedPiece = nullptr;
+        pieceMovedInTurn = true;
+        isWhiteTurn = !isWhiteTurn;
+        qDebug() << "알림: 기물이 성공적으로 이동했습니다.";
+    }
+    else
+    {
+        selectedPiece = nullptr;
+    }
+}
+
+void chess::addPieceToStorage(QGraphicsPixmapItem* piece, QGraphicsView* storageView)
+{
+    QGraphicsScene *storageScene = storageView->scene();
+    QPixmap pieceImage(piece->data(0).toString());
+
+    pieceImage = pieceImage.scaled(40, 40);
+    QGraphicsPixmapItem *storedItem = new QGraphicsPixmapItem(pieceImage);
+    int itemCount = storageScene->items().size();
+    int row = itemCount / 4;
+    int col = itemCount % 4;
+    storedItem->setPos(col * 40, row * 40);
+    storageScene->addItem(storedItem);
 }
 
 
-
-// LCD 업데이트 함수
 void chess::updateLCD(int timeMs, QLCDNumber *lcd)
 {
     int minutes = (timeMs / 60000) % 60;
@@ -222,11 +279,9 @@ void chess::updateLCD(int timeMs, QLCDNumber *lcd)
     lcd->display(QString("%1:%2").arg(minutes, 2, 10, QChar('0')).arg(seconds, 2, 10, QChar('0')));
 }
 
-
-// 흰색 시간 감소
 void chess::updateWhiteTimer()
 {
-    whiteTimeRemaining -= 10;  // 10ms 감소
+    whiteTimeRemaining -= 10;
     updateLCD(whiteTimeRemaining, ui->white_timer);
 
     if (whiteTimeRemaining <= 0)
@@ -235,10 +290,9 @@ void chess::updateWhiteTimer()
     }
 }
 
-// 검은색 시간 감소
 void chess::updateBlackTimer()
 {
-    blackTimeRemaining -= 10;  // 10ms 감소
+    blackTimeRemaining -= 10;
     updateLCD(blackTimeRemaining, ui->black_timer);
 
     if (blackTimeRemaining <= 0)
@@ -247,40 +301,33 @@ void chess::updateBlackTimer()
     }
 }
 
-// 흰색 턴 종료: 검은색 타이머 시작
 void chess::on_white_done_clicked()
 {
-    if (!pieceMovedInTurn) return;  // 기물이 움직이지 않았다면 턴 종료 불가
+    if (!pieceMovedInTurn) return;
 
     whiteTimer.stop();
-    blackTimer.start(10);  // 흑의 타이머 시작
-    if (isWhiteTurn)  // 흰색 턴 종료
-    {
-        isWhiteTurn = false;
-        pieceMovedInTurn = false;  // 턴 초기화
-        qDebug() << "흰색 턴이 끝났습니다. 검은색 차례입니다.";
-        updateTurnDisplay();
-    }
+    blackTimer.start(10);
+    isWhiteTurn = false;
+    pieceMovedInTurn = false;
+    updateTurnDisplay();
+    qDebug() << "백의 턴이 끝났습니다. 흑의 차례입니다.";
 }
 
 void chess::on_black_done_clicked()
 {
-    if (!pieceMovedInTurn) return;  // 기물이 움직이지 않았다면 턴 종료 불가
+    if (!pieceMovedInTurn) return;
 
     blackTimer.stop();
-    whiteTimer.start(10);  // 백의 타이머 시작
-    if (!isWhiteTurn)  // 검은색 턴 종료
-    {
-        isWhiteTurn = true;
-        pieceMovedInTurn = false;  // 턴 초기화
-        qDebug() << "검은색 턴이 끝났습니다. 흰색 차례입니다.";
-        updateTurnDisplay();
-    }
+    whiteTimer.start(10);
+    isWhiteTurn = true;
+    pieceMovedInTurn = false;
+    updateTurnDisplay();
+    qDebug() << "흑의 턴이 끝났습니다. 백의 차례입니다.";
 }
 
 QString chess::getPieceType(QGraphicsPixmapItem* piece)
 {
-    QString path = piece->data(0).toString();  // 이미지 경로 가져오기
+    QString path = piece->data(0).toString();
     if (path.contains("pawn")) return "pawn";
     if (path.contains("rook")) return "rook";
     if (path.contains("knight")) return "knight";
@@ -292,20 +339,14 @@ QString chess::getPieceType(QGraphicsPixmapItem* piece)
 
 bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol)
 {
-    qDebug() << "Moving piece:" << pieceType;
-    qDebug() << "From:" << startRow << startCol;
-    qDebug() << "To:" << endRow << endCol;
-
     int rowDiff = endRow - startRow;
     int colDiff = endCol - startCol;
 
-    // 체스판 범위 체크
     if (endRow < 0 || endRow > 7 || endCol < 0 || endCol > 7)
     {
         return false;
     }
 
-    // 타겟 위치의 기물 확인 (QGraphicsPixmapItem만 고려)
     QGraphicsPixmapItem* targetPiece = nullptr;
     QList<QGraphicsItem*> items = scene->items(QPointF(endCol * 80 + 40, endRow * 80 + 40));
     for (QGraphicsItem* item : items)
@@ -317,29 +358,41 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
         }
     }
 
-    bool isWhite = selectedPiece->data(0).toString().contains("white");
-    qDebug() << "기물색:" << isWhite;
+    if (isWhiteTurn)
+    {
+        qDebug() << "기물색: 흰색";
+    }
+    else
+    {
+        qDebug() << "기물색: 검은색";
+    }
     qDebug() << "가로 칸수:" << rowDiff;
     qDebug() << "세로 칸수:" << colDiff;
-    qDebug() << "상대 기물 존재:" << (targetPiece != nullptr);
+    if (targetPiece != nullptr)
+    {
+        qDebug() << "상대 기물이 존재함";
+    }
+    else
+    {
+        qDebug() << "상대 기물이 존재하지 않음";
+    }
+
 
     if (pieceType == "pawn")
     {
-        // 전진 이동 (수직 이동)
         if (colDiff == 0)
         {
             if (targetPiece)
             {
                 qDebug() << "경로에 기물이 있습니다";
-                return false; // 전진 경로에 기물이 있으면 이동 불가
+                return false;
             }
 
-            if (isWhite)
+            if (isWhiteTurn)
             {
-                // 백색 폰
-                if (rowDiff == -1) return true; // 한 칸 전진
-                if (startRow == 6 && rowDiff == -2) { // 첫 이동시 두 칸 전진
-                    // 중간 경로 체크
+                if (rowDiff == -1) return true;
+                if (startRow == 6 && rowDiff == -2)
+                {
                     QList<QGraphicsItem*> midItems = scene->items(QPointF(startCol * 80 + 40, (startRow - 1) * 80 + 40));
                     bool midPathClear = true;
                     for (QGraphicsItem* item : midItems)
@@ -352,12 +405,12 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
                     }
                     return midPathClear;
                 }
-            } else {
-                // 흑색 폰
-                if (rowDiff == 1) return true; // 한 칸 전진
+            }
+            else
+            {
+                if (rowDiff == 1) return true;
                 if (startRow == 1 && rowDiff == 2)
-                { // 첫 이동시 두 칸 전진
-                    // 중간 경로 체크
+                {
                     QList<QGraphicsItem*> midItems = scene->items(QPointF(startCol * 80 + 40, (startRow + 1) * 80 + 40));
                     bool midPathClear = true;
                     for (QGraphicsItem* item : midItems)
@@ -373,14 +426,13 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
             }
         }
 
-        // 대각선 공격
         if (abs(colDiff) == 1)
         {
-            if (isWhite && rowDiff == -1)
+            if (isWhiteTurn && rowDiff == -1)
             {
                 return targetPiece && !isSameColor(selectedPiece, targetPiece);
             }
-            if (!isWhite && rowDiff == 1)
+            if (!isWhiteTurn && rowDiff == 1)
             {
                 return targetPiece && !isSameColor(selectedPiece, targetPiece);
             }
@@ -389,82 +441,85 @@ bool chess::isValidMove(const QString& pieceType, int startRow, int startCol, in
         return false;
     }
 
-
-    // 룩: 같은 행 또는 열로 이동하며 경로에 장애물이 없어야 함
     if (pieceType == "rook")
     {
         return (startRow == endRow || startCol == endCol) && isPathClear(startRow, startCol, endRow, endCol);
     }
 
-    // 비숍: 대각선 이동하며 경로에 장애물이 없어야 함
     if (pieceType == "bishop")
     {
         return abs(endRow - startRow) == abs(endCol - startCol) && isPathClear(startRow, startCol, endRow, endCol);
     }
 
-    // 퀸: 행, 열, 대각선으로 이동 가능하며 경로에 장애물이 없어야 함
     if (pieceType == "queen")
     {
         return (startRow == endRow || startCol == endCol || abs(endRow - startRow) == abs(endCol - startCol)) &&
                isPathClear(startRow, startCol, endRow, endCol);
     }
 
-    // 나이트: 경로와 관계없이 L자 형태로 이동
     if (pieceType == "knight")
     {
         return (abs(endRow - startRow) == 2 && abs(endCol - startCol) == 1) ||
                (abs(endRow - startRow) == 1 && abs(endCol - startCol) == 2);
     }
 
-    // 킹: 한 칸씩 이동
     if (pieceType == "king")
     {
         return abs(endRow - startRow) <= 1 && abs(endCol - startCol) <= 1;
     }
 
-    return false;  // 유효하지 않은 이동
+    return false;
 }
-
-
 
 bool chess::isPathClear(int startRow, int startCol, int endRow, int endCol)
 {
-    int rowStep = (endRow - startRow) == 0 ? 0 : (endRow - startRow) / abs(endRow - startRow);
-    int colStep = (endCol - startCol) == 0 ? 0 : (endCol - startCol) / abs(endCol - startCol);
+    int rowStep;
+    int colStep;
+    if ((endRow - startRow) == 0)
+    {
+        rowStep = 0;
+    }
+    else
+    {
+        rowStep = (endRow - startRow) / abs(endRow - startRow);
+    }
+
+    if ((endCol - startCol) == 0)
+    {
+        colStep = 0;
+    }
+    else
+    {
+        colStep = (endCol - startCol) / abs(endCol - startCol);
+    }
 
     int currentRow = startRow + rowStep;
     int currentCol = startCol + colStep;
 
-    // 목표 지점 전까지 경로를 검사
     while (currentRow != endRow || currentCol != endCol)
     {
-        // 해당 좌표에 있는 아이템들 확인
         QList<QGraphicsItem*> items = scene->items(QPointF(currentCol * 80 + 40, currentRow * 80 + 40));
 
-        // 기물(Pixmap Item)만 체크
         for (QGraphicsItem* item : items)
         {
             if (dynamic_cast<QGraphicsPixmapItem*>(item))
             {
-                return false;  // 경로에 기물이 있으면 false 반환
+                return false;
             }
         }
 
-        // 다음 위치로 이동
         currentRow += rowStep;
         currentCol += colStep;
     }
-    return true;  // 경로에 기물이 없음
+    return true;
 }
 
-// 승리/무승부 메시지 출력 함수
 void chess::declareWinner(const QString& winner)
 {
     QMessageBox::information(this, "게임 종료", winner + " 승리!");
     resetGame();
 }
 
-// 시간 초과 확인 함수
 void chess::checkTimeOver()
 {
     if (whiteTimeRemaining <= 0)
@@ -476,27 +531,37 @@ void chess::checkTimeOver()
         declareWinner("흰색");
     }
 }
+
 void chess::resetGame()
 {
-    // 모든 기물 제거
     scene->clear();
 
-    // 초기화 변수 설정
     pieceMovedInTurn = false;
-    isWhiteTurn = true; // 흰색이 먼저 시작
+    isWhiteTurn = true;
+    updateTurnDisplay();
 
-    // 타이머 초기화
-    whiteTimeRemaining = 600000;  // 10분
-    blackTimeRemaining = 600000;  // 10분
+    if (ui->white_got->scene())
+    {
+        ui->white_got->scene()->clear();
+    }
+    if (ui->black_got->scene())
+    {
+        ui->black_got->scene()->clear();
+    }
+
+    whiteTimer.stop();
+    blackTimer.stop();
+    whiteTimeRemaining = 600000;
+    blackTimeRemaining = 600000;
     updateLCD(whiteTimeRemaining, ui->white_timer);
     updateLCD(blackTimeRemaining, ui->black_timer);
 
-    // 체스판과 기물 재배치
     drawChessBoard();
     placePieces();
 
-    qDebug() << "게임이 초기화되었습니다.";
+    qDebug() << "게임이 초기화되었습니다. 백의 턴입니다.";
 }
+
 
 void chess::on_white_giveup_clicked()
 {
@@ -508,21 +573,17 @@ void chess::on_black_giveup_clicked()
     declareWinner("흰색");
 }
 
-void chess::on_help_clicked()
+void chess::on_help_button_clicked()
 {
-    // 새로운 윈도우 창을 만들어 이미지를 보여줌
     QWidget *helpWindow = new QWidget();
     helpWindow->setWindowTitle("Chess Rules");
 
-    // QLabel을 사용하여 이미지를 보여줌
     QLabel *imageLabel = new QLabel(helpWindow);
     QPixmap chessRulesPixmap(":/images/chess_rule.png");
 
-    // 이미지 크기를 조정하고 QLabel에 설정
     imageLabel->setPixmap(chessRulesPixmap);
-    imageLabel->setScaledContents(true); // 이미지가 QLabel 크기에 맞게 조정됨
+    imageLabel->setScaledContents(true);
 
-    // 창 크기를 이미지 크기에 맞게 조정
     helpWindow->resize(chessRulesPixmap.size());
 
     // 창을 표시
@@ -531,22 +592,85 @@ void chess::on_help_clicked()
 
 void chess::updateTurnDisplay()
 {
-    // 현재 턴을 저장하는 변수가 있다고 가정 (true: 백, false: 흑)
-    static bool isWhiteTurn = true;
-
-    // QTextBrowser에 표시할 텍스트 설정
     if (isWhiteTurn)
-    {
-        ui->textBrowser->setText("흑의 턴입니다");
-    }
-    else
     {
         ui->textBrowser->setText("백의 턴입니다");
     }
-
-    // 턴을 전환
-    isWhiteTurn = !isWhiteTurn;
+    else
+    {
+        ui->textBrowser->setText("흑의 턴입니다");
+    }
 }
 
 
+void chess::promotePawn(QGraphicsPixmapItem* pawn, int row, int col)
+{
+    QDialog promotionDialog(this);
+    promotionDialog.setWindowTitle("프로모션 선택");
+
+    QVBoxLayout* layout = new QVBoxLayout(&promotionDialog);
+    QPushButton* queenButton = new QPushButton("퀸", &promotionDialog);
+    QPushButton* rookButton = new QPushButton("룩", &promotionDialog);
+    QPushButton* bishopButton = new QPushButton("비숍", &promotionDialog);
+    QPushButton* knightButton = new QPushButton("나이트", &promotionDialog);
+
+    layout->addWidget(queenButton);
+    layout->addWidget(rookButton);
+    layout->addWidget(bishopButton);
+    layout->addWidget(knightButton);
+
+    QString color;
+    if (pawn->data(0).toString().contains("white"))
+    {
+        color = "white";
+    }
+    else
+    {
+        color = "black";
+    }
+    // queenButton 클릭 이벤트 처리
+    connect(queenButton, &QPushButton::clicked, [&]()
+            {
+                changePiece(pawn, QString(":/images/%1_queen.png").arg(color), row, col);
+                promotionDialog.accept();
+            });
+    connect(rookButton, &QPushButton::clicked, [&]()
+            {
+                changePiece(pawn, QString(":/images/%1_rook.png").arg(color), row, col);
+                promotionDialog.accept();
+            });
+    connect(bishopButton, &QPushButton::clicked, [&]()
+            {
+                changePiece(pawn, QString(":/images/%1_bishop.png").arg(color), row, col);
+                promotionDialog.accept();
+            });
+    connect(knightButton, &QPushButton::clicked, [&]()
+            {
+                changePiece(pawn, QString(":/images/%1_knight.png").arg(color), row, col);
+                promotionDialog.accept();
+            });
+}
+
+void chess::changePiece(QGraphicsPixmapItem* oldPiece, const QString& newImagePath, int row, int col)
+{
+    scene->removeItem(oldPiece);
+    delete oldPiece;
+    QGraphicsPixmapItem* newPiece = addPiece(newImagePath, row, col);
+    newPiece->setData(0, newImagePath);
+}
+
+void chess::on_debug_button_clicked()
+{
+    debugMode = !debugMode;
+
+    if (debugMode)
+    {
+        qDebug() << "디버그 모드가 활성화되었습니다. 규칙이 무시됩니다.";
+    }
+    else
+    {
+        qDebug() << "디버그 모드가 비활성화되었습니다. 게임이 초기화됩니다.";
+        resetGame();
+    }
+}
 
