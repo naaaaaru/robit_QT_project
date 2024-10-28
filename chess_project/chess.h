@@ -37,19 +37,19 @@ private:
     bool debugMode = false;
     bool pieceMovedInTurn = false;
 
-    int whiteTimeRemaining = 600000;
-    int blackTimeRemaining = 600000;
+    int whiteTime= 600000;
+    int blackTime = 600000;
 
     bool isValidMove(const QString& pieceType, int startRow, int startCol, int endRow, int endCol);
     bool isPathClear(int startRow, int startCol, int endRow, int endCol);
     QString getPieceType(QGraphicsPixmapItem* piece);
 
-    void updateTurnDisplay();
+    void updateTurn();
     void resetGame();
     void checkTimeOver();
-    void declareWinner(const QString& winner);
+    void finishGame(const QString& winner);
     void drawChessBoard();
-    void addPieceToStorage(QGraphicsPixmapItem* piece, QGraphicsView* storageView);
+    void capturedShow(QGraphicsPixmapItem* piece, QGraphicsView* storageView);
 
     void promotePawn(QGraphicsPixmapItem* pawn, int row, int col);
     void changePiece(QGraphicsPixmapItem* oldPiece, const QString& newImagePath, int row, int col);
