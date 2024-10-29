@@ -67,10 +67,10 @@ void chess::drawChessBoard()
 
 QGraphicsPixmapItem* chess::addPiece(const QString& imagePath, int i, int j)
 {
-    QPixmap piece(imagePath);//경로를 사진 객체 piece생성
+    QPixmap piece(imagePath);//이미지를 보여줄수 있는 qpixmap을 사용해 piece객체 생성
     piece = piece.scaled(80, 80);//사진의 사이즈
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(piece);
-    //piece이미지를 사용하는 생성자,QGraphicsPixmapItem는 이미지 기물처럼 다룰수 있는 객체
+    //piece이미지를 사용하는 생성자,QGraphicsPixmapItem를 사용해 qpixmap을 그래픽 장면에 추가
     item->setPos(j * 80, i * 80);//위치
     item->setData(0, imagePath);//이미지 경로
     scene->addItem(item);//scene에 기물 배치
@@ -155,7 +155,6 @@ void chess::mouseReleaseEvent(QMouseEvent *event)
         qDebug() << "에러: 기물이 선택되지 않았습니다.";
         return;
     }//기물이 선택되지 않을때
-
     QPointF releasePos = ui->graphicsView->mapToScene(event->pos());
     //마우스를 놓은 위치 좌표 포인터 저장
     int tileSize = 80;
